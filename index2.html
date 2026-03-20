@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AttendancePro • Secure Attendance</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg: #0d1117;
+      --surface: #161b22;
+      --surface-elevated: #1f2937;
+      --text-primary: #e2e8f0;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+      --accent: #6366f1;
+      --accent-dark: #4f46e5;
+      --accent-glow: rgba(99, 102, 241, 0.18);
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --border: #30363d;
+      --border-subtle: #21262d;
+      --radius-sm: 8px;
+      --radius: 12px;
+      --radius-lg: 16px;
+      --shadow-sm: 0 4px 12px rgba(0,0,0,0.4);
+      --shadow-md: 0 10px 25px rgba(0,0,0,0.55);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text-primary);
+      min-height: 100vh;
+      line-height: 1.6;
+      background-image: 
+        radial-gradient(circle at 15% 50%, rgba(99,102,241,0.07) 0%, transparent 25%),
+        radial-gradient(circle at 85% 30%, rgba(16,185,129,0.05) 0%, transparent 30%);
+      background-attachment: fixed;
+    }
+
+    header {
+      background: rgba(22, 27, 34, 0.92);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--border);
+      padding: 1rem 5%;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .logo {
+      font-weight: 700;
+      font-size: 1.55rem;
+      letter-spacing: -0.5px;
+      background: linear-gradient(90deg, #a5b4fc, #c084fc);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    main {
+      max-width: 1280px;
+      margin: 2.5rem auto;
+      padding: 0 5%;
+    }
+
+    h1 {
+      font-size: 2.4rem;
+      font-weight: 700;
+      letter-spacing: -0.6px;
+      margin-bottom: 0.4rem;
+      background: linear-gradient(90deg, #e2e8f0, #cbd5e1);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .subtitle {
+      color: var(--text-secondary);
+      font-size: 1.05rem;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 1.8rem 2rem;
+      margin-bottom: 2rem;
+      box-shadow: var(--shadow-md);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, transparent 40%, var(--accent-glow) 70%, transparent 100%);
+      opacity: 0.4;
+      pointer-events: none;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 1.4rem;
+      margin: 1.8rem 0;
+    }
+
+    .stat-item {
+      background: var(--surface-elevated);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius);
+      padding: 1.4rem 1.2rem;
+      text-align: center;
+      transition: all 0.22s ease;
+    }
+
+    .stat-item:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 30px rgba(0,0,0,0.5);
+      border-color: var(--accent);
+    }
+
+    .stat-value {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 2.6rem;
+      font-weight: 600;
+      color: var(--accent);
+      letter-spacing: -1px;
+      line-height: 1;
+    }
+
+    .stat-label {
+      color: var(--text-muted);
+      font-size: 0.92rem;
+      margin-top: 0.5rem;
+      display: block;
+    }
+
+    /* ── QR Section ──────────────────────────────────────────────── */
+    .qr-section {
+      text-align: center;
+      padding: 4rem 1rem 5rem;
+      background: linear-gradient(180deg, #0f172a 0%, #0d1117 100%);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow-md);
+      margin: 3rem 0;
+    }
+
+    #qr-container {
+      width: 320px;
+      height: 320px;
+      margin: 2.5rem auto;
+      background: #000;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 0 40px rgba(99,102,241,0.4),
+                  inset 0 0 20px rgba(0,0,0,0.8);
+      position: relative;
+    }
+
+    #qr-timer {
+      position: absolute;
+      bottom: 12px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0,0,0,0.7);
+      color: #a5b4fc;
+      font-family: 'JetBrains Mono', monospace;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 0.95rem;
+      font-weight: 500;
+      letter-spacing: 0.5px;
+      border: 1px solid rgba(165,180,252,0.3);
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.6rem;
+      padding: 0.7rem 1.5rem;
+      border-radius: 999px;
+      font-weight: 500;
+      margin: 1.8rem 0 2.5rem;
+      background: rgba(16,185,129,0.15);
+      color: var(--success);
+      border: 1px solid rgba(16,185,129,0.3);
+    }
+
+    .status-pill.warning {
+      background: rgba(245,158,11,0.15);
+      color: var(--warning);
+      border-color: rgba(245,158,11,0.3);
+    }
+
+    /* ── Class cards ─────────────────────────────────────────────── */
+    .class-item {
+      background: var(--surface-elevated);
+      border-left: 4px solid var(--accent);
+      border-radius: var(--radius);
+      padding: 1.4rem;
+      margin-bottom: 1.2rem;
+      transition: all 0.2s;
+    }
+
+    .class-item:hover {
+      transform: translateX(6px);
+      box-shadow: 0 8px 25px rgba(99,102,241,0.15);
+    }
+
+    .time {
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 500;
+      color: #a5b4fc;
+    }
+
+    footer {
+      text-align: center;
+      padding: 4rem 1rem 3rem;
+      color: var(--text-muted);
+      font-size: 0.92rem;
+      border-top: 1px solid var(--border);
+    }
+
+    @media (max-width: 640px) {
+      .stats-grid { grid-template-columns: 1fr 1fr; }
+      #qr-container { width: 280px; height: 280px; }
+      h1 { font-size: 2rem; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">AttendancePro</div>
+  <div style="color:var(--text-muted); font-size:0.95rem; font-family:'JetBrains Mono',monospace;">
+    v0.9.2 • Gurugram Campus
+  </div>
+</header>
+
+<main>
+
+  <section>
+    <h1>Kashish • CS Sem 4</h1>
+    <p class="subtitle">Overall Attendance • 83.7% • Consistency 94/100</p>
+
+    <div class="card">
+      <h2 style="margin-bottom:1.6rem;">Current Snapshot</h2>
+      <div class="stats-grid">
+        <div class="stat-item">
+          <div class="stat-value">91.4%</div>
+          <div class="stat-label">This Semester</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value">28</div>
+          <div class="stat-label">Classes Attended</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value">3</div>
+          <div class="stat-label">Absences</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value">96</div>
+          <div class="stat-label">Consistency Index</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Today's Schedule</h2>
+      <div style="margin-top:1.6rem;">
+        <div class="class-item">
+          <div class="time">10:30 – 11:20</div>
+          <strong>Machine Learning</strong><br>
+          <span style="color:var(--text-secondary);">Room 304 • Dr. Ananya Sharma</span>
+        </div>
+        <div class="class-item" style="border-left-color: var(--warning);">
+          <div class="time">13:00 – 13:50</div>
+          <strong>Cloud Computing</strong><br>
+          <span style="color:var(--text-secondary);">Room 112 • Prof. Vikram</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- QR Attendance Section -->
+    <div class="qr-section">
+      <h2 style="margin-bottom:0.8rem;">Mark Attendance – ML</h2>
+      <p style="color:var(--text-secondary); margin-bottom:2.5rem;">
+        Valid until <span id="expiry-time" style="color:#a5b4fc; font-family:'JetBrains Mono',monospace;">10:32:45</span>
+      </p>
+
+      <div id="qr-container">
+        <div style="position:absolute; inset:0; display:grid; place-items:center; color:#4b5563; font-size:1.1rem;">
+          Secure Dynamic QR
+        </div>
+        <div id="qr-timer">29s</div>
+      </div>
+
+      <div class="status-pill">
+        <span>●</span> Proximity Verified (BLE + GPS • 7.2 m)
+      </div>
+
+      <p style="color:var(--text-muted); max-width:480px; margin:0 auto; font-size:0.95rem;">
+        Device fingerprint match • No mock location • Campus Wi-Fi SSID verified
+      </p>
+    </div>
+
+  </section>
+
+</main>
+
+<footer>
+  <p>AttendancePro — Fraud Resistant • Proximity-first • 2026</p>
+  <p style="margin-top:0.6rem; opacity:0.7;">
+    AES-256 • Ed25519 signatures • Zero-knowledge range proofs
+  </p>
+</footer>
+
+<script>
+// Very simple rotating timer simulation (for demo)
+let seconds = 29;
+
+function updateTimer() {
+  seconds--;
+  if (seconds < 0) seconds = 29;
+  
+  document.getElementById('qr-timer').textContent = seconds + 's';
+  
+  // You would regenerate QR code here in real app
+  // For demo we just change color slightly
+  const hue = Math.floor(Math.random() * 60) + 220;
+  document.getElementById('qr-container').style.boxShadow = 
+    `0 0 40px hsla(${hue}, 70%, 65%, 0.4), inset 0 0 20px rgba(0,0,0,0.8)`;
+}
+
+setInterval(updateTimer, 1000);
+updateTimer();
+
+// Mock expiry countdown
+let expirySec = 2 * 60 + 45; // 2:45
+const expiryEl = document.getElementById('expiry-time');
+
+function updateExpiry() {
+  expirySec--;
+  if (expirySec < 0) expirySec = 0;
+  
+  const min = Math.floor(expirySec / 60).toString().padStart(2,'0');
+  const sec = (expirySec % 60).toString().padStart(2,'0');
+  expiryEl.textContent = `${min}:${sec}`;
+}
+
+setInterval(updateExpiry, 1000);
+updateExpiry();
+</script>
+
+</body>
+</html>
