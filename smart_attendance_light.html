@@ -1,0 +1,474 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap');
+  *{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --bg:#f0f4f8;--surface:#ffffff;--surface2:#f8fafc;--border:#e2e8f0;
+    --accent:#2563eb;--accent2:#0891b2;--green:#059669;--red:#dc2626;
+    --amber:#d97706;--text:#1e293b;--muted:#64748b;--white:#fff;
+  }
+  body{font-family:'Space Grotesk',sans-serif;background:var(--bg);color:var(--text);min-height:600px;overflow-x:hidden}
+  .app{display:flex;flex-direction:column;min-height:600px}
+  .topbar{display:flex;align-items:center;justify-content:space-between;padding:12px 20px;background:var(--white);border-bottom:1px solid var(--border);box-shadow:0 1px 3px rgba(0,0,0,0.06)}
+  .topbar-left{display:flex;align-items:center;gap:10px}
+  .logo{font-size:18px;font-weight:700;color:var(--text);letter-spacing:-0.5px}
+  .logo span{color:var(--accent)}
+  .badge{font-size:11px;padding:3px 8px;border-radius:20px;font-weight:600}
+  .badge-live{background:rgba(5,150,105,0.12);color:var(--green);border:1px solid rgba(5,150,105,0.25)}
+  .class-info{font-size:12px;color:var(--muted)}
+  .nav{display:flex;gap:4px}
+  .nav-btn{padding:7px 14px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;border:none;background:transparent;color:var(--muted);transition:all 0.2s}
+  .nav-btn.active{background:#eff6ff;color:var(--accent);border:1px solid #bfdbfe}
+  .nav-btn:hover:not(.active){color:var(--text);background:var(--surface2)}
+  .main{display:flex;gap:0;flex:1}
+  .sidebar{width:220px;background:var(--white);border-right:1px solid var(--border);padding:16px 12px;display:flex;flex-direction:column;gap:6px}
+  .sidebar-title{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin:8px 4px 4px}
+  .menu-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;cursor:pointer;font-size:13px;color:var(--muted);transition:all 0.15s;border:1px solid transparent}
+  .menu-item.active{background:#eff6ff;color:var(--accent);border-color:#bfdbfe}
+  .menu-item:hover:not(.active){background:var(--surface2);color:var(--text)}
+  .menu-icon{font-size:15px;width:18px;text-align:center}
+  .content{flex:1;overflow-y:auto;padding:20px}
+  .view{display:none}
+  .view.active{display:block}
+
+  .qr-layout{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+  .qr-card{background:var(--white);border:1px solid var(--border);border-radius:14px;padding:20px;box-shadow:0 1px 4px rgba(0,0,0,0.05)}
+  .qr-card h3{font-size:14px;color:var(--muted);margin-bottom:16px;font-weight:500}
+  .qr-box{width:200px;height:200px;margin:0 auto 16px;position:relative;display:flex;align-items:center;justify-content:center}
+  .qr-canvas{width:200px;height:200px;border-radius:10px;display:block;border:1px solid var(--border)}
+  .qr-corner{position:absolute;width:20px;height:20px;border-color:var(--accent);border-style:solid}
+  .qr-corner.tl{top:-2px;left:-2px;border-width:3px 0 0 3px;border-radius:4px 0 0 0}
+  .qr-corner.tr{top:-2px;right:-2px;border-width:3px 3px 0 0;border-radius:0 4px 0 0}
+  .qr-corner.bl{bottom:-2px;left:-2px;border-width:0 0 3px 3px;border-radius:0 0 0 4px}
+  .qr-corner.br{bottom:-2px;right:-2px;border-width:0 3px 3px 0;border-radius:0 0 4px 0}
+  .token-display{font-family:'JetBrains Mono',monospace;font-size:13px;text-align:center;background:#f8fafc;padding:8px 12px;border-radius:8px;color:var(--accent2);border:1px solid var(--border);word-break:break-all}
+  .timer-bar{width:100%;height:4px;background:#e2e8f0;border-radius:2px;margin-top:12px;overflow:hidden}
+  .timer-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:2px;transition:width 0.5s linear}
+  .timer-text{font-size:12px;color:var(--muted);text-align:center;margin-top:6px}
+  .scan-info{font-size:12px;color:var(--muted);text-align:center;margin-top:8px}
+
+  .stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px}
+  .stat{background:var(--white);border:1px solid var(--border);border-radius:10px;padding:14px;box-shadow:0 1px 3px rgba(0,0,0,0.04)}
+  .stat-val{font-size:24px;font-weight:700;line-height:1}
+  .stat-label{font-size:11px;color:var(--muted);margin-top:4px}
+  .stat-val.green{color:var(--green)}
+  .stat-val.amber{color:var(--amber)}
+  .stat-val.red{color:var(--red)}
+
+  .student-list{display:flex;flex-direction:column;gap:6px}
+  .student-row{display:flex;align-items:center;gap:12px;background:var(--white);border:1px solid var(--border);border-radius:10px;padding:10px 14px;transition:all 0.2s;box-shadow:0 1px 3px rgba(0,0,0,0.03)}
+  .student-row:hover{border-color:#bfdbfe;box-shadow:0 2px 8px rgba(37,99,235,0.08)}
+  .avatar{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex-shrink:0}
+  .student-info{flex:1}
+  .student-name{font-size:13px;font-weight:600;color:var(--text)}
+  .student-meta{font-size:11px;color:var(--muted);margin-top:2px}
+  .status-badge{font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px}
+  .status-present{background:rgba(5,150,105,0.1);color:var(--green);border:1px solid rgba(5,150,105,0.2)}
+  .status-proxy{background:rgba(220,38,38,0.08);color:var(--red);border:1px solid rgba(220,38,38,0.2)}
+  .status-absent{background:#f1f5f9;color:var(--muted);border:1px solid var(--border)}
+  .status-event{background:rgba(217,119,6,0.1);color:var(--amber);border:1px solid rgba(217,119,6,0.2)}
+  .status-pending{background:rgba(8,145,178,0.1);color:var(--accent2);border:1px solid rgba(8,145,178,0.2)}
+  .proxy-warning{font-size:10px;color:var(--red);margin-top:2px;display:flex;align-items:center;gap:4px}
+  .approve-btn{padding:5px 12px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;background:rgba(5,150,105,0.1);color:var(--green);border:1px solid rgba(5,150,105,0.25);transition:all 0.15s}
+  .approve-btn:hover{background:rgba(5,150,105,0.2)}
+  .reject-btn{padding:5px 12px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;background:rgba(220,38,38,0.07);color:var(--red);border:1px solid rgba(220,38,38,0.2);margin-left:6px;transition:all 0.15s}
+
+  .geo-card{background:var(--white);border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:16px;box-shadow:0 1px 4px rgba(0,0,0,0.05)}
+  .map-area{width:100%;height:260px;background:#f0f9ff;border-radius:10px;border:1px solid #bae6fd;position:relative;overflow:hidden;margin-bottom:12px}
+  .map-grid{position:absolute;inset:0;background-image:linear-gradient(#e0f2fe 1px,transparent 1px),linear-gradient(90deg,#e0f2fe 1px,transparent 1px);background-size:40px 40px}
+  .classroom-zone{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:120px;height:90px;border:2px solid var(--accent);border-radius:8px;background:rgba(37,99,235,0.07);display:flex;align-items:center;justify-content:center}
+  .zone-label{font-size:10px;color:var(--accent);font-weight:700;text-align:center}
+  .radius-ring{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:180px;height:140px;border:1.5px dashed rgba(217,119,6,0.5);border-radius:50%}
+  .dot{position:absolute;width:10px;height:10px;border-radius:50%;transform:translate(-50%,-50%);cursor:pointer}
+  .dot-present{background:var(--green);box-shadow:0 0 6px rgba(5,150,105,0.4)}
+  .dot-proxy{background:var(--red);box-shadow:0 0 6px rgba(220,38,38,0.4)}
+  .dot-teacher{background:var(--accent);box-shadow:0 0 8px rgba(37,99,235,0.5);width:14px;height:14px}
+  .legend{display:flex;gap:16px;flex-wrap:wrap}
+  .legend-item{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)}
+  .legend-dot{width:8px;height:8px;border-radius:50%}
+
+  .event-card{background:var(--white);border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:14px;box-shadow:0 1px 4px rgba(0,0,0,0.05)}
+  .event-header{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+  .event-title{font-size:15px;font-weight:700;color:var(--text)}
+  .event-sub{font-size:12px;color:var(--muted);margin-top:2px}
+  .event-request{display:flex;align-items:center;gap:12px;background:#f8fafc;border:1px solid var(--border);border-radius:10px;padding:12px}
+  .request-info{flex:1}
+  .request-name{font-size:13px;font-weight:600;color:var(--text)}
+  .request-event{font-size:11px;color:var(--muted);margin-top:2px}
+  .request-time{font-size:11px;color:var(--amber)}
+  .action-btns{display:flex;gap:8px}
+
+  .section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+  .section-title{font-size:15px;font-weight:700;color:var(--text)}
+  .filter-row{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+  .filter-btn{padding:5px 12px;border-radius:6px;font-size:12px;font-weight:500;cursor:pointer;border:1px solid var(--border);background:var(--white);color:var(--muted);transition:all 0.15s}
+  .filter-btn.active{background:#eff6ff;color:var(--accent);border-color:#bfdbfe}
+  .toast{position:fixed;bottom:20px;right:20px;background:var(--white);border:1px solid var(--border);padding:12px 18px;border-radius:10px;font-size:13px;z-index:1000;box-shadow:0 4px 20px rgba(0,0,0,0.12);animation:slideIn 0.3s ease;max-width:260px;color:var(--text)}
+  @keyframes slideIn{from{transform:translateX(100%);opacity:0}to{transform:none;opacity:1}}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="logo">Attend<span>IQ</span></div>
+      <span class="badge badge-live">LIVE</span>
+      <span class="class-info">CS-301 · Room 204 · April 8, 2026</span>
+    </div>
+    <div class="nav">
+      <button class="nav-btn active" onclick="switchView('qr')">QR Scanner</button>
+      <button class="nav-btn" onclick="switchView('students')">Students</button>
+      <button class="nav-btn" onclick="switchView('geo')">Geolocation</button>
+      <button class="nav-btn" onclick="switchView('events')">Event Requests</button>
+    </div>
+  </div>
+  <div class="main">
+    <div class="sidebar">
+      <div class="sidebar-title">Overview</div>
+      <div class="menu-item active" onclick="switchView('qr')"><span class="menu-icon">▦</span> QR Code</div>
+      <div class="menu-item" onclick="switchView('students')"><span class="menu-icon">≡</span> Student List</div>
+      <div class="menu-item" onclick="switchView('geo')"><span class="menu-icon">◎</span> Geolocation</div>
+      <div class="menu-item" onclick="switchView('events')"><span class="menu-icon">✦</span> Event Requests <span id="req-count" style="background:rgba(217,119,6,0.12);color:var(--amber);font-size:10px;padding:1px 6px;border-radius:8px;margin-left:auto">2</span></div>
+      <div class="sidebar-title" style="margin-top:16px">Session</div>
+      <div style="padding:10px 12px;background:#f8fafc;border-radius:8px;border:1px solid var(--border)">
+        <div style="font-size:11px;color:var(--muted)">Started</div>
+        <div style="font-size:13px;font-weight:600;margin-top:2px;color:var(--text)">9:00 AM</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:8px">Duration</div>
+        <div style="font-size:13px;font-weight:600;margin-top:2px;color:var(--text)" id="duration">00:00</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:8px">QR Refresh</div>
+        <div style="font-size:13px;font-weight:600;margin-top:2px;color:var(--text)">Every 10s</div>
+      </div>
+    </div>
+
+    <div class="content">
+      <!-- QR View -->
+      <div class="view active" id="view-qr">
+        <div class="stats-grid">
+          <div class="stat"><div class="stat-val green" id="s-present">18</div><div class="stat-label">Present</div></div>
+          <div class="stat"><div class="stat-val red" id="s-proxy">3</div><div class="stat-label">Proxy Risk</div></div>
+          <div class="stat"><div class="stat-val amber" id="s-absent">4</div><div class="stat-label">Absent</div></div>
+        </div>
+        <div class="qr-layout">
+          <div class="qr-card">
+            <h3>Live QR Code — refreshes every 10 seconds</h3>
+            <div class="qr-box">
+              <canvas class="qr-canvas" id="qrCanvas" width="200" height="200"></canvas>
+              <div class="qr-corner tl"></div><div class="qr-corner tr"></div>
+              <div class="qr-corner bl"></div><div class="qr-corner br"></div>
+            </div>
+            <div class="token-display" id="token-display">ATT-2026-Xk9mP2qR</div>
+            <div class="timer-bar"><div class="timer-fill" id="timer-fill" style="width:100%"></div></div>
+            <div class="timer-text" id="timer-text">Refreshing in 10s</div>
+            <div class="scan-info">Students scan to mark attendance · Token changes automatically</div>
+          </div>
+          <div class="qr-card">
+            <h3>Instructions for Teacher</h3>
+            <div style="display:flex;flex-direction:column;gap:10px;margin-top:4px">
+              <div style="display:flex;gap:10px;align-items:flex-start">
+                <div style="width:24px;height:24px;border-radius:50%;background:#eff6ff;color:var(--accent);font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">1</div>
+                <div style="font-size:13px;color:var(--muted);line-height:1.5">Display the QR code on the projector. The token rotates every 10 seconds so students cannot share it after leaving.</div>
+              </div>
+              <div style="display:flex;gap:10px;align-items:flex-start">
+                <div style="width:24px;height:24px;border-radius:50%;background:#eff6ff;color:var(--accent);font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">2</div>
+                <div style="font-size:13px;color:var(--muted);line-height:1.5">Students within 15 meters are marked present. Those beyond 15m are flagged as proxy risk.</div>
+              </div>
+              <div style="display:flex;gap:10px;align-items:flex-start">
+                <div style="width:24px;height:24px;border-radius:50%;background:#eff6ff;color:var(--accent);font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">3</div>
+                <div style="font-size:13px;color:var(--muted);line-height:1.5">Students at events can send verification requests. Approve or reject from the Event Requests tab.</div>
+              </div>
+              <div style="display:flex;gap:10px;align-items:flex-start">
+                <div style="width:24px;height:24px;border-radius:50%;background:#eff6ff;color:var(--accent);font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">4</div>
+                <div style="font-size:13px;color:var(--muted);line-height:1.5">Use the Geolocation tab to see a live map of all student positions relative to the classroom.</div>
+              </div>
+            </div>
+            <div style="margin-top:16px;padding:12px;background:rgba(220,38,38,0.05);border:1px solid rgba(220,38,38,0.15);border-radius:8px">
+              <div style="font-size:12px;color:var(--red);font-weight:600;margin-bottom:4px">Proxy Detection Active</div>
+              <div style="font-size:11px;color:var(--muted)">3 students flagged beyond 15m radius. Review in Students tab.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Students View -->
+      <div class="view" id="view-students">
+        <div class="section-header">
+          <div class="section-title">Student Attendance</div>
+          <div style="font-size:12px;color:var(--muted)">CS-301 · 25 enrolled</div>
+        </div>
+        <div class="filter-row">
+          <button class="filter-btn active" onclick="filterStudents('all',this)">All (25)</button>
+          <button class="filter-btn" onclick="filterStudents('present',this)">Present (18)</button>
+          <button class="filter-btn" onclick="filterStudents('proxy',this)">Proxy Risk (3)</button>
+          <button class="filter-btn" onclick="filterStudents('event',this)">At Event (2)</button>
+          <button class="filter-btn" onclick="filterStudents('absent',this)">Absent (2)</button>
+        </div>
+        <div class="student-list" id="student-list"></div>
+      </div>
+
+      <!-- Geo View -->
+      <div class="view" id="view-geo">
+        <div class="section-header">
+          <div class="section-title">Live Geolocation Map</div>
+          <div style="font-size:12px;color:var(--muted)">Simulated · Room 204</div>
+        </div>
+        <div class="geo-card">
+          <div class="map-area" id="geo-map">
+            <div class="map-grid"></div>
+            <div class="radius-ring"></div>
+            <div class="classroom-zone"><div class="zone-label">CLASSROOM<br>ZONE</div></div>
+            <div id="map-dots"></div>
+          </div>
+          <div class="legend">
+            <div class="legend-item"><div class="legend-dot" style="background:var(--accent)"></div>Teacher</div>
+            <div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div>Present (≤15m)</div>
+            <div class="legend-item"><div class="legend-dot" style="background:var(--red)"></div>Proxy Risk (>15m)</div>
+            <div class="legend-item" style="margin-left:auto;font-size:11px;color:var(--amber)">-- 15m boundary</div>
+          </div>
+        </div>
+        <div class="geo-card">
+          <div style="font-size:13px;font-weight:600;margin-bottom:12px;color:var(--text)">Flagged Students</div>
+          <div id="geo-flags"></div>
+        </div>
+      </div>
+
+      <!-- Events View -->
+      <div class="view" id="view-events">
+        <div class="section-header">
+          <div class="section-title">Event Attendance Requests</div>
+          <div style="font-size:12px;color:var(--muted)">Pending teacher approval</div>
+        </div>
+        <div id="event-requests"></div>
+        <div style="margin-top:20px">
+          <div style="font-size:13px;font-weight:600;margin-bottom:12px;color:var(--muted)">Recently Resolved</div>
+          <div id="event-resolved"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const students=[
+  {id:1,name:'Aryan Sharma',roll:'CS21001',avatar:'AS',color:'#2563eb',status:'present',dist:3,event:null},
+  {id:2,name:'Priya Patel',roll:'CS21002',avatar:'PP',color:'#059669',status:'present',dist:7,event:null},
+  {id:3,name:'Rohit Gupta',roll:'CS21003',avatar:'RG',color:'#d97706',status:'proxy',dist:28,event:null},
+  {id:4,name:'Sneha Iyer',roll:'CS21004',avatar:'SI',color:'#7c3aed',status:'present',dist:5,event:null},
+  {id:5,name:'Kavya Reddy',roll:'CS21005',avatar:'KR',color:'#db2777',status:'event',dist:null,event:'TechFest 2026'},
+  {id:6,name:'Amit Joshi',roll:'CS21006',avatar:'AJ',color:'#0891b2',status:'present',dist:11,event:null},
+  {id:7,name:'Nisha Verma',roll:'CS21007',avatar:'NV',color:'#ea580c',status:'proxy',dist:34,event:null},
+  {id:8,name:'Rahul Singh',roll:'CS21008',avatar:'RS',color:'#0d9488',status:'present',dist:9,event:null},
+  {id:9,name:'Divya Nair',roll:'CS21009',avatar:'DN',color:'#9333ea',status:'absent',dist:null,event:null},
+  {id:10,name:'Vikram Malhotra',roll:'CS21010',avatar:'VM',color:'#2563eb',status:'present',dist:4,event:null},
+  {id:11,name:'Anjali Mehta',roll:'CS21011',avatar:'AM',color:'#059669',status:'event',dist:null,event:'NSS Camp'},
+  {id:12,name:'Karan Kapoor',roll:'CS21012',avatar:'KK',color:'#dc2626',status:'proxy',dist:42,event:null},
+  {id:13,name:'Pooja Sinha',roll:'CS21013',avatar:'PS',color:'#d97706',status:'present',dist:6,event:null},
+  {id:14,name:'Arjun Nambiar',roll:'CS21014',avatar:'AN',color:'#0891b2',status:'absent',dist:null,event:null},
+  {id:15,name:'Meera Krishnan',roll:'CS21015',avatar:'MK',color:'#7c3aed',status:'present',dist:13,event:null},
+];
+const eventRequests=[
+  {id:5,name:'Kavya Reddy',roll:'CS21005',event:'TechFest 2026',proof:'Event ID: TF2026-K42',time:'09:12 AM',status:'pending'},
+  {id:11,name:'Anjali Mehta',roll:'CS21011',event:'NSS Camp',proof:'NSS Leader confirmation attached',time:'09:08 AM',status:'pending'},
+];
+const resolvedRequests=[];
+let timerCount=10,sessionStart=Date.now(),currentFilter='all';
+
+function generateToken(){
+  const chars='ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';
+  let t='ATT-2026-';
+  for(let i=0;i<8;i++) t+=chars[Math.floor(Math.random()*chars.length)];
+  return t;
+}
+let currentToken=generateToken();
+
+function drawQR(token){
+  const canvas=document.getElementById('qrCanvas');
+  const ctx=canvas.getContext('2d');
+  ctx.clearRect(0,0,200,200);
+  ctx.fillStyle='#ffffff';
+  ctx.fillRect(0,0,200,200);
+  let seed=0;
+  for(let i=0;i<token.length;i++) seed=(seed*31+token.charCodeAt(i))&0xFFFFFF;
+  const cells=20,csize=9,off=10;
+  ctx.fillStyle='#1e293b';
+  for(let r=0;r<cells;r++){
+    for(let c=0;c<cells;c++){
+      seed=(seed*1664525+1013904223)&0xFFFFFF;
+      const filled=(r<7&&c<7)||(r<7&&c>=cells-7)||(r>=cells-7&&c<7)||(seed%3<2);
+      if(filled) ctx.fillRect(off+c*csize,off+r*csize,csize-1,csize-1);
+    }
+  }
+  [[1,1],[cells-6,1],[1,cells-6]].forEach(([r,c])=>{
+    ctx.fillStyle='#ffffff';
+    ctx.fillRect(off+c*csize+csize,off+r*csize+csize,(csize*3)-2,(csize*3)-2);
+    ctx.fillStyle='#2563eb';
+    ctx.fillRect(off+c*csize+csize+2,off+r*csize+csize+2,(csize*3)-6,(csize*3)-6);
+  });
+  ctx.fillStyle='#2563eb';
+  ctx.font='bold 9px monospace';
+  ctx.textAlign='center';
+  ctx.fillText(token.split('-').pop(),100,197);
+}
+
+function updateQR(){
+  currentToken=generateToken();
+  document.getElementById('token-display').textContent=currentToken;
+  drawQR(currentToken);
+  showToast('QR code refreshed — new token active');
+}
+
+function updateTimer(){
+  timerCount--;
+  if(timerCount<=0){updateQR();timerCount=10}
+  document.getElementById('timer-fill').style.width=(timerCount/10*100)+'%';
+  document.getElementById('timer-text').textContent=`Refreshing in ${timerCount}s`;
+}
+
+function updateDuration(){
+  const e=Math.floor((Date.now()-sessionStart)/1000);
+  document.getElementById('duration').textContent=String(Math.floor(e/60)).padStart(2,'0')+':'+String(e%60).padStart(2,'0');
+}
+
+function renderStudents(){
+  const list=document.getElementById('student-list');
+  const filtered=currentFilter==='all'?students:students.filter(s=>s.status===currentFilter);
+  const statusMap={present:'Present',proxy:'Proxy Risk',absent:'Absent',event:'At Event',pending:'Pending'};
+  const statusClass={present:'status-present',proxy:'status-proxy',absent:'status-absent',event:'status-event',pending:'status-pending'};
+  list.innerHTML=filtered.map(s=>{
+    const proxyWarn=s.status==='proxy'?`<div class="proxy-warning"><span>⚠</span> Beyond 15m — flagged as proxy attempt</div>`:'';
+    const eventTag=s.event?`<span style="font-size:10px;background:rgba(217,119,6,0.1);color:#d97706;padding:1px 6px;border-radius:4px;border:1px solid rgba(217,119,6,0.2)">${s.event}</span>`:'';
+    const pendingReq=eventRequests.find(r=>r.id===s.id&&r.status==='pending');
+    const actions=pendingReq?`<button class="approve-btn" onclick="approveEvent(${s.id})">✓ Approve</button><button class="reject-btn" onclick="rejectEvent(${s.id})">✗ Reject</button>`:'';
+    return `<div class="student-row">
+      <div class="avatar" style="background:${s.color}18;color:${s.color}">${s.avatar}</div>
+      <div class="student-info">
+        <div class="student-name">${s.name} <span style="font-size:11px;color:var(--muted);font-weight:400">${s.roll}</span> ${eventTag}</div>
+        <div class="student-meta">${s.dist!==null?s.dist+'m away · ':''}Scanned 09:04 AM${proxyWarn}</div>
+      </div>
+      ${actions}
+      <span class="status-badge ${statusClass[s.status]}">${statusMap[s.status]}</span>
+    </div>`;
+  }).join('');
+}
+
+function filterStudents(filter,btn){
+  currentFilter=filter;
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderStudents();
+}
+
+function approveEvent(id){
+  const s=students.find(s=>s.id===id);
+  const req=eventRequests.find(r=>r.id===id);
+  if(s&&req){
+    s.status='present';req.status='approved';
+    resolvedRequests.push({...req,resolution:'Approved',time2:new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})});
+    eventRequests.splice(eventRequests.indexOf(req),1);
+    updateStats();renderStudents();renderEvents();
+    showToast(`${s.name} marked present — event approved`);
+  }
+}
+
+function rejectEvent(id){
+  const s=students.find(s=>s.id===id);
+  const req=eventRequests.find(r=>r.id===id);
+  if(s&&req){
+    s.status='absent';req.status='rejected';
+    resolvedRequests.push({...req,resolution:'Rejected',time2:new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})});
+    eventRequests.splice(eventRequests.indexOf(req),1);
+    updateStats();renderStudents();renderEvents();
+    showToast(`${s.name} request rejected — marked absent`);
+  }
+}
+
+function renderEvents(){
+  document.getElementById('req-count').textContent=eventRequests.length;
+  const pending=document.getElementById('event-requests');
+  const resolved=document.getElementById('event-resolved');
+  pending.innerHTML=eventRequests.length===0?`<div style="text-align:center;padding:30px;color:var(--muted);font-size:13px">No pending requests</div>`:
+    eventRequests.map(r=>`<div class="event-card">
+      <div class="event-header">
+        <div style="font-size:20px">🎓</div>
+        <div><div class="event-title">${r.name}</div><div class="event-sub">${r.roll} · Request at ${r.time}</div></div>
+        <span class="status-badge status-pending" style="margin-left:auto">Pending</span>
+      </div>
+      <div class="event-request">
+        <div class="request-info">
+          <div class="request-name">Event: ${r.event}</div>
+          <div class="request-event">${r.proof}</div>
+          <div class="request-time">Student is physically at the event venue</div>
+        </div>
+        <div class="action-btns">
+          <button class="approve-btn" onclick="approveEvent(${r.id})">✓ Approve</button>
+          <button class="reject-btn" onclick="rejectEvent(${r.id})">✗ Reject</button>
+        </div>
+      </div>
+    </div>`).join('');
+  resolved.innerHTML=resolvedRequests.length===0?`<div style="font-size:12px;color:var(--muted)">No resolved requests yet</div>`:
+    resolvedRequests.map(r=>`<div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--white);border:1px solid var(--border);border-radius:8px;margin-bottom:6px;font-size:12px">
+      <span style="color:${r.resolution==='Approved'?'var(--green)':'var(--red)'}">${r.resolution==='Approved'?'✓':'✗'}</span>
+      <span style="font-weight:600;color:var(--text)">${r.name}</span>
+      <span style="color:var(--muted)">${r.event}</span>
+      <span style="color:var(--muted);margin-left:auto">${r.resolution} at ${r.time2}</span>
+    </div>`).join('');
+}
+
+function renderGeo(){
+  const map=document.getElementById('map-dots');
+  const flags=document.getElementById('geo-flags');
+  const geoStudents=[
+    {name:'Teacher',x:50,y:50,type:'teacher'},
+    {name:'Aryan',x:48,y:44,type:'present'},{name:'Priya',x:54,y:55,type:'present'},
+    {name:'Rohit',x:22,y:30,type:'proxy',dist:28},{name:'Sneha',x:47,y:58,type:'present'},
+    {name:'Amit',x:56,y:42,type:'present'},{name:'Nisha',x:75,y:22,type:'proxy',dist:34},
+    {name:'Rahul',x:45,y:47,type:'present'},{name:'Vikram',x:53,y:50,type:'present'},
+    {name:'Karan',x:82,y:70,type:'proxy',dist:42},
+  ];
+  map.innerHTML=geoStudents.map(s=>`<div class="dot dot-${s.type}" style="left:${s.x}%;top:${s.y}%" title="${s.name}${s.dist?' ('+s.dist+'m)':''}"></div>`).join('');
+  const proxyStudents=students.filter(s=>s.status==='proxy');
+  flags.innerHTML=proxyStudents.length===0?`<div style="font-size:12px;color:var(--green)">No proxy risk detected</div>`:
+    proxyStudents.map(s=>`<div style="display:flex;align-items:center;gap:12px;padding:10px 12px;background:rgba(220,38,38,0.04);border:1px solid rgba(220,38,38,0.15);border-radius:8px;margin-bottom:8px">
+      <div class="avatar" style="width:30px;height:30px;font-size:11px;background:${s.color}18;color:${s.color}">${s.avatar}</div>
+      <div style="flex:1"><div style="font-size:13px;font-weight:600;color:var(--text)">${s.name}</div><div style="font-size:11px;color:var(--muted)">${s.roll}</div></div>
+      <div style="font-size:12px;color:var(--red);font-weight:600">${s.dist}m away</div>
+      <span class="status-badge status-proxy">Proxy</span>
+    </div>`).join('');
+}
+
+function updateStats(){
+  document.getElementById('s-present').textContent=students.filter(s=>s.status==='present').length;
+  document.getElementById('s-proxy').textContent=students.filter(s=>s.status==='proxy').length;
+  document.getElementById('s-absent').textContent=students.filter(s=>s.status==='absent'||s.status==='event').length;
+}
+
+function switchView(v){
+  document.querySelectorAll('.view').forEach(el=>el.classList.remove('active'));
+  document.querySelectorAll('.nav-btn,.menu-item').forEach(el=>el.classList.remove('active'));
+  document.getElementById('view-'+v).classList.add('active');
+  document.querySelectorAll('.nav-btn,.menu-item').forEach(el=>{
+    if(el.getAttribute('onclick')&&el.getAttribute('onclick').includes("'"+v+"'")) el.classList.add('active');
+  });
+  if(v==='students') renderStudents();
+  if(v==='geo') renderGeo();
+  if(v==='events') renderEvents();
+}
+
+function showToast(msg){
+  const old=document.querySelector('.toast');if(old)old.remove();
+  const t=document.createElement('div');t.className='toast';t.textContent=msg;
+  document.body.appendChild(t);setTimeout(()=>t.remove(),3000);
+}
+
+drawQR(currentToken);
+renderStudents();
+renderEvents();
+setInterval(updateTimer,1000);
+setInterval(updateDuration,1000);
+</script>
+</body>
+</html>
