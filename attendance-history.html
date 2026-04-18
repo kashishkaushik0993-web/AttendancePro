@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Attendance History - AttendancePro</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="script.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+</head>
+<body class="bg-gray-50 min-h-screen">
+  <div class="max-w-2xl mx-auto bg-white min-h-screen">
+    <div class="bg-gradient-to-r from-indigo-600 to-violet-600 text-white p-6">
+      <h1 class="text-2xl font-bold">My Attendance History</h1>
+    </div>
+
+    <div class="p-6">
+      <div id="historyContainer" class="space-y-4"></div>
+    </div>
+
+    <div class="fixed bottom-0 left-0 right-0 max-w-2xl mx-auto bg-white border-t p-4 flex justify-around text-xs">
+      <a href="mark-attendance.html" class="text-gray-500 flex flex-col items-center"><i class="fas fa-qrcode text-2xl"></i><span>Mark</span></a>
+      <a href="attendance-history.html" class="text-indigo-600 flex flex-col items-center"><i class="fas fa-history text-2xl"></i><span>History</span></a>
+      <a href="#" onclick="logout()" class="text-gray-500 flex flex-col items-center"><i class="fas fa-sign-out-alt text-2xl"></i><span>Logout</span></a>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+  <script>
+    async function loadHistory() {
+      try {
+        const records = await apiCall('/api/history');
+        const container = document.getElementById('historyContainer');
+        container.innerHTML = '';
+
+        if (records.length === 0) {
+          container.innerHTML = `<div class="empty-state"><i class="fas fa-history"></i><p class="mt-4">No records yet</p></div>`;
+          return;
+        }
+
+        records.forEach(r => {
+          const div = document.createElement('div');
+          div.className = 'card bg-white border border-gray-200 rounded-3xl p-6';
+          div.innerHTML = `
+            <div class="flex justify-between">
+              <div>
+                <p class="font-semibold">${r.date}</p>
+                <p class="text-sm text-gray-500">${r.time} • ${r.course}</p>
+              </div>
+              <span class="px-5 py-2 bg-emerald-100 text-emerald-700 rounded-full text-sm font-medium">Present</span>
+            </div>
+          `;
+          container.appendChild(div);
+        });
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    window.onload = loadHistory;
+  </script>
+</body>
+</html>

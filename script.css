@@ -1,0 +1,31 @@
+/* frontend/script.css */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: 'Inter', sans-serif;
+  background-color: #f9fafb;
+}
+
+.card {
+  transition: all 0.3s ease;
+}
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1);
+}
+
+.rounded-3xl { border-radius: 1.5rem; }
+
+.empty-state {
+  background-color: #f8fafc;
+  border: 2px dashed #cbd5e1;
+  border-radius: 1.5rem;
+  padding: 3rem;
+  text-align: center;
+}
+
+.empty-state i {
+  font-size: 3.5rem;
+  color: #cbd5e1;
+}

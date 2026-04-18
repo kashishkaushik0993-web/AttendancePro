@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - AttendancePro</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="script.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+</head>
+<body class="bg-gray-50 min-h-screen flex items-center justify-center">
+  <div class="max-w-md w-full bg-white rounded-3xl shadow-2xl overflow-hidden">
+    <div class="bg-gradient-to-r from-indigo-600 to-violet-600 px-8 py-10 text-white text-center">
+      <h1 class="text-3xl font-bold">AttendancePro</h1>
+      <p class="text-indigo-100 mt-1">Secure • Proximity • Intelligent</p>
+    </div>
+
+    <div class="p-8">
+      <div class="flex bg-gray-100 rounded-2xl p-1 mb-8">
+        <button onclick="switchRole(0)" id="studentBtn" class="flex-1 py-4 rounded-xl font-semibold bg-white shadow-sm">Student</button>
+        <button onclick="switchRole(1)" id="teacherBtn" class="flex-1 py-4 rounded-xl font-semibold">Teacher</button>
+      </div>
+
+      <form id="loginForm">
+        <div class="space-y-6">
+          <input type="text" id="userId" placeholder="Roll No / Teacher ID" class="w-full px-5 py-4 border border-gray-300 rounded-2xl focus:outline-none focus:border-indigo-500" required>
+          <input type="password" id="password" placeholder="Password" value="1234" class="w-full px-5 py-4 border border-gray-300 rounded-2xl focus:outline-none focus:border-indigo-500" required>
+          <button type="submit" class="w-full py-5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xl rounded-3xl transition">Login</button>
+        </div>
+      </form>
+
+      <p class="text-center mt-6 text-sm text-gray-500">
+        New user? <a href="register.html" class="text-indigo-600 font-medium">Register here</a>
+      </p>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+  <script>
+    let currentRole = 'student';
+    function switchRole(r) {
+      currentRole = r === 0 ? 'student' : 'teacher';
+      document.getElementById('studentBtn').classList.toggle('bg-white', currentRole === 'student');
+      document.getElementById('studentBtn').classList.toggle('shadow-sm', currentRole === 'student');
+      document.getElementById('teacherBtn').classList.toggle('bg-white', currentRole === 'teacher');
+      document.getElementById('teacherBtn').classList.toggle('shadow-sm', currentRole === 'teacher');
+    }
+
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const userId = document.getElementById('userId').value.trim();
+      const password = document.getElementById('password').value.trim();
+
+      try {
+        const res = await fetch('http://localhost:5000/api/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId, password, role: currentRole })
+        });
+        const data = await res.json();
+
+        if (data.token) {
+          localStorage.setItem('token', data.token);
+          showToast('Login successful!');
+          window.location.href = currentRole === 'student' ? 'mark-attendance.html' : 'teacher-report.html';
+        } else {
+          alert(data.message || 'Login failed');
+        }
+      } catch (err) {
+        alert('Server error. Make sure backend is running.');
+      }
+    });
+
+    window.onload = () => switchRole(0);
+  </script>
+</body>
+</html>

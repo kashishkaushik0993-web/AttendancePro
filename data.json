@@ -1,0 +1,37 @@
+{
+  "users": [
+    {
+      "id": 1,
+      "rollNo": "101",
+      "name": "Kashish",
+      "password": "$2b$10$AuB4ckpB5l8VpsnGlMkxeuZcVECZ4OJ7KFKwXqIrbNGM5ZpdUscIS",
+      "role": "student"
+    },
+    {
+      "id": 2,
+      "rollNo": "admin",
+      "name": "Teacher",
+      "password": "$2b$10$kT6RFycLa97tVo0/PjdCXu0EErKQx79gd5Of7koPwNeRQVwN33LP.",
+      "role": "teacher"
+    },
+    {
+      "id": 3,
+      "rollNo": "102",
+      "name": "Rahul",
+      "password": "$2b$10$MgRqWJmkwOohe9v6tviryetYK0Jc.Rj4H4M4hWINwgSJsSayvpYwO",
+      "role": "student"
+    }
+  ],
+  "attendances": [
+    {
+      "id": 1,
+      "userId": 1,
+      "rollNo": "101",
+      "name": "Kashish",
+      "date": "14/4/2026",
+      "time": "09:00:00 am",
+      "course": "CSE-301",
+      "status": "Present"
+    }
+  ]
+}
